@@ -90,8 +90,8 @@
 		1415EE3924DD741B0098C7E2 /* pathtracer-plus-plus */ = {
 			isa = PBXGroup;
 			children = (
-				1415EE6524DD95940098C7E2 /* shader.frag */,
 				1415EE6624DD95940098C7E2 /* shader.vert */,
+				1415EE6524DD95940098C7E2 /* shader.frag */,
 				1415EE4F24DD78E20098C7E2 /* pathtracer-plus-plus.entitlements */,
 				1415EE3A24DD741B0098C7E2 /* main.cpp */,
 			);
