@@ -16,7 +16,6 @@ void main() {
 
 
 /*
-
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
@@ -31,19 +30,9 @@ layout(location = 0) in vec2 fragCoord;
 layout(location = 0) out vec4 fragColor;
 
 
-
-
-
-
-
 #define MAX_STEPS 100
 #define MAX_DIST 100.
 #define SURF_DIST .01
-
-
-
-
-
 
 
 float GetDist(vec3 p) {
@@ -79,6 +68,3 @@ void main()
   fragColor = vec4(col,1.0);
 }
 */
-
-
-
