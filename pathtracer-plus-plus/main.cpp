@@ -314,7 +314,7 @@ class HelloTriangleApplication {
     createTextureSampler();
     loadModel();
     
-    createVoxels();
+    //    createVoxels();
 
 
     
@@ -519,6 +519,8 @@ class HelloTriangleApplication {
     if (physicalDevice == VK_NULL_HANDLE) {
       throw std::runtime_error("failed to find a suitable GPU!");
     }
+
+    
   }
 
   void createLogicalDevice() {
@@ -539,6 +541,7 @@ class HelloTriangleApplication {
 
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
+    //    deviceFeatures.geometryShader = VK_TRUE;
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -698,7 +701,7 @@ class HelloTriangleApplication {
     }
   }
 
-  void createDescriptorSetLayout() {
+  void createDescriptorSetLayout() { //uniform variables
     VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorCount = 1;
@@ -726,11 +729,11 @@ class HelloTriangleApplication {
 
   void createGraphicsPipeline() {
     auto vertShaderCode = readFile("shaders/vert.spv");
-    auto geomShaderCode = readFile("shaders/geom.spv");
+    //    auto geomShaderCode = readFile("shaders/geom.spv");
     auto fragShaderCode = readFile("shaders/frag.spv");
 
     VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
-    VkShaderModule geomShaderModule = createShaderModule(geomShaderCode);    
+    //    VkShaderModule geomShaderModule = createShaderModule(geomShaderCode);    
     VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -739,11 +742,11 @@ class HelloTriangleApplication {
     vertShaderStageInfo.module = vertShaderModule;
     vertShaderStageInfo.pName = "main";
 
-    VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
-    geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    geomShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-    geomShaderStageInfo.module = geomShaderModule;
-    geomShaderStageInfo.pName = "main";
+    // VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
+    // geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    // geomShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+    // geomShaderStageInfo.module = geomShaderModule;
+    // geomShaderStageInfo.pName = "main";
     
     VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
     fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -751,8 +754,8 @@ class HelloTriangleApplication {
     fragShaderStageInfo.module = fragShaderModule;
     fragShaderStageInfo.pName = "main";
 
-    //    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, geomShaderStageInfo, fragShaderStageInfo};
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+    //    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, geomShaderStageInfo, fragShaderStageInfo};
 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -767,8 +770,8 @@ class HelloTriangleApplication {
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    //inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    //inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
     VkViewport viewport{};
@@ -794,8 +797,8 @@ class HelloTriangleApplication {
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    //    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer.polygonMode = VK_POLYGON_MODE_LINE;    
+    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    //rasterizer.polygonMode = VK_POLYGON_MODE_LINE;    
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -840,8 +843,8 @@ class HelloTriangleApplication {
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    //    pipelineInfo.stageCount = 2;
-    pipelineInfo.stageCount = 3;
+    pipelineInfo.stageCount = 2;
+    //    pipelineInfo.stageCount = 3;
     pipelineInfo.pStages = shaderStages;
     pipelineInfo.pVertexInputState = &vertexInputInfo;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -860,7 +863,7 @@ class HelloTriangleApplication {
     }
 
     vkDestroyShaderModule(device, fragShaderModule, nullptr);
-    vkDestroyShaderModule(device, geomShaderModule, nullptr);
+    //    vkDestroyShaderModule(device, geomShaderModule, nullptr);
     vkDestroyShaderModule(device, vertShaderModule, nullptr);
   }
 
@@ -1271,7 +1274,7 @@ class HelloTriangleApplication {
 
 
 
-  
+  /*
   void createVoxels() {
     //    centroids.resize(VOXEL_SIZE);
 
@@ -1296,13 +1299,13 @@ class HelloTriangleApplication {
             //            centroids[z * YLEN + y * XLEN + x].pos = pos;
             Vertex cent{};
             cent.pos = pos;
-            centroids.push_back(cent);
+            //            centroids.push_back(cent);
           }
         }
       }
     }
   }
-
+  */
 
 
 
@@ -1311,9 +1314,9 @@ class HelloTriangleApplication {
   
 
   void createVertexBuffer() {
-    //    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-    //VkDeviceSize bufferSize = sizeof(pv[0][0][0]) * VOXEL_SIZE;
-    VkDeviceSize bufferSize = sizeof(centroids[0]) * centroids.size();
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+
+    //VkDeviceSize bufferSize = sizeof(centroids[0]) * centroids.size();
     
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
@@ -1321,8 +1324,8 @@ class HelloTriangleApplication {
 
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    //    memcpy(data, pointVertices.data(), (size_t) bufferSize);
-    memcpy(data, centroids.data(), (size_t) bufferSize);
+    memcpy(data, vertices.data(), (size_t) bufferSize);
+    //memcpy(data, centroids.data(), (size_t) bufferSize);
     vkUnmapMemory(device, stagingBufferMemory);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
