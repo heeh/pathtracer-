@@ -27,9 +27,11 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+#include <cassert>
+#include <tuple>
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
+const uint32_t WIDTH = 1600;
+const uint32_t HEIGHT = 1200;
 
 // const std::string MODEL_PATH = "models/viking_room.obj";
 // const std::string TEXTURE_PATH = "textures/viking_room.png";
@@ -39,6 +41,11 @@ const std::string MODEL_PATH = "models/vokselia_spawn.obj";
 const std::string TEXTURE_PATH = "textures/vokselia_spawn.png";
 //const std::string MODEL_PATH = "models/lost_empire.obj";
 //const std::string TEXTURE_PATH = "textures/lost_empire-RGBA.png";
+//const std::string MODEL_PATH = "models/sponza.obj";
+//const std::string TEXTURE_PATH = "textures/sponza.png";
+
+
+
 
 const std::string MODEL_DIR = "models/";
 
@@ -129,7 +136,37 @@ struct Vertex {
   bool operator==(const Vertex& other) const {
     return pos == other.pos && color == other.color && texCoord == other.texCoord;
   }
+	
 };
+
+
+
+struct PointVertex {
+  PointVertex() {
+    pos = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    packed_color = enabledFaces = 0;
+  }
+  PointVertex(glm::vec3 p) {
+    pos.x = p.x;
+    pos.y = p.y;
+    pos.z = p.z;
+    pos.w = 1.0;
+    packed_color = enabledFaces = 0;
+  }
+  glm::vec4 pos;
+  uint32_t packed_color;
+  uint32_t enabledFaces;
+
+  bool operator==(const PointVertex& other) const {
+    return pos == other.pos && packed_color == other.packed_color && enabledFaces == other.enabledFaces;
+  }
+};
+
+
+
+
+
+
 
 namespace std {
 template<> struct hash<Vertex> {
@@ -144,6 +181,20 @@ struct UniformBufferObject {
   alignas(16) glm::mat4 view;
   alignas(16) glm::mat4 proj;
 };
+
+
+const size_t ZLEN = 385;
+const size_t YLEN = 100;
+const size_t XLEN = 387;
+bool pt[ZLEN][YLEN][XLEN];
+PointVertex pv[ZLEN][YLEN][XLEN];
+
+
+
+
+
+
+
 
 class HelloTriangleApplication {
  public:
@@ -198,6 +249,11 @@ class HelloTriangleApplication {
 
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
+
+  std::vector<PointVertex> pointVertices;
+
+
+  
   VkBuffer vertexBuffer;
   VkDeviceMemory vertexBufferMemory;
   VkBuffer indexBuffer;
@@ -253,6 +309,11 @@ class HelloTriangleApplication {
     createTextureImageView();
     createTextureSampler();
     loadModel();
+    
+    createVoxels();
+
+
+    
     createVertexBuffer();
     createIndexBuffer();
     createUniformBuffers();
@@ -694,6 +755,7 @@ class HelloTriangleApplication {
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    //inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
     VkViewport viewport{};
@@ -719,7 +781,8 @@ class HelloTriangleApplication {
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    //    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer.polygonMode = VK_POLYGON_MODE_LINE;    
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -1176,7 +1239,7 @@ class HelloTriangleApplication {
 
         vertex.texCoord = {
           attrib.texcoords[2 * index.texcoord_index + 0],
-          1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+          1.0f - attrib.texcoords[2 * index.texcoord_index + 1] // vulkan coordinates
         };
 
         vertex.color = {1.0f, 1.0f, 1.0f};
@@ -1190,6 +1253,43 @@ class HelloTriangleApplication {
       }
     }
   }
+
+
+
+  
+  void createVoxels() {
+    for (int i = 0; i < indices.size(); i++) {
+      glm::vec3 p = vertices[indices[i]].pos;
+      size_t z = round(p.z * 100) + 192;
+      size_t y = round(p.y * 100);
+      size_t x = round(p.x * 100) + 193;
+
+      
+      pt[z][y][x] = true;
+    }
+
+    for(int z = 0; z < ZLEN; z++) {
+      for(int y = 0; y < YLEN; y++) {
+        for(int x = 0; x < XLEN; x++) {
+          if (pt[z][y][x] && pt[z][y][x+1] && pt[z][y+1][x] && pt[z][y+1][x+1] &&
+              pt[z+1][y][x] && pt[z+1][y][x+1] && pt[z+1][y+1][x] && pt[z+1][y+1][x+1]) {
+            glm::vec4 pos = glm::vec4((z + 0.5 - 192) / 100.0, (y + 0.5) / 100.0, (x + 0.5 - 193) / 100.0, 1.0);
+            pv[z][y][x].pos = pos;
+          }
+        }
+      }
+    }
+
+
+    
+  }
+
+
+
+
+
+
+  
 
   void createVertexBuffer() {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
@@ -1478,7 +1578,7 @@ class HelloTriangleApplication {
     ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(270.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     //ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     //ubo.model = glm::mat4(1.0f);
-    ubo.view = glm::lookAt(glm::vec3(0.5f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = glm::lookAt(glm::vec3(0.5f, 0.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
     ubo.proj[1][1] *= -1;
 
