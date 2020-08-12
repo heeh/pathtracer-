@@ -143,22 +143,25 @@ struct Vertex {
 
 struct PointVertex {
   PointVertex() {
-    pos = glm::vec4(0.0, 0.0, 0.0, 0.0);
+    pos = glm::vec3(0.0, 0.0, 0.0);
     packed_color = enabledFaces = 0;
+    solid = false;
   }
   PointVertex(glm::vec3 p) {
     pos.x = p.x;
     pos.y = p.y;
     pos.z = p.z;
-    pos.w = 1.0;
     packed_color = enabledFaces = 0;
+    solid = false;
   }
-  glm::vec4 pos;
+  glm::vec3 pos;
   uint32_t packed_color;
   uint32_t enabledFaces;
+  bool solid;
 
   bool operator==(const PointVertex& other) const {
-    return pos == other.pos && packed_color == other.packed_color && enabledFaces == other.enabledFaces;
+    return pos == other.pos && packed_color == other.packed_color &&
+        enabledFaces == other.enabledFaces && solid == other.solid;
   }
 };
 
@@ -184,8 +187,9 @@ struct UniformBufferObject {
 
 
 const size_t ZLEN = 385;
-const size_t YLEN = 100;
+const size_t YLEN = 78;
 const size_t XLEN = 387;
+const size_t VOXEL_SIZE = ZLEN * YLEN * XLEN;
 bool pt[ZLEN][YLEN][XLEN];
 PointVertex pv[ZLEN][YLEN][XLEN];
 
@@ -250,7 +254,7 @@ class HelloTriangleApplication {
   std::vector<Vertex> vertices;
   std::vector<uint32_t> indices;
 
-  std::vector<PointVertex> pointVertices;
+  std::vector<Vertex> centroids; // Centroids of voxels
 
 
   
@@ -754,8 +758,8 @@ class HelloTriangleApplication {
 
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    //inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+    //inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
     VkViewport viewport{};
@@ -1258,13 +1262,17 @@ class HelloTriangleApplication {
 
   
   void createVoxels() {
+    centroids.resize(VOXEL_SIZE);
+
+    size_t zOff, xOff;
+    zOff = ZLEN / 2;
+    xOff = XLEN / 2;
+    
     for (int i = 0; i < indices.size(); i++) {
       glm::vec3 p = vertices[indices[i]].pos;
-      size_t z = round(p.z * 100) + 192;
+      size_t z = round(p.z * 100) + zOff;
       size_t y = round(p.y * 100);
-      size_t x = round(p.x * 100) + 193;
-
-      
+      size_t x = round(p.x * 100) + xOff;
       pt[z][y][x] = true;
     }
 
@@ -1273,15 +1281,14 @@ class HelloTriangleApplication {
         for(int x = 0; x < XLEN; x++) {
           if (pt[z][y][x] && pt[z][y][x+1] && pt[z][y+1][x] && pt[z][y+1][x+1] &&
               pt[z+1][y][x] && pt[z+1][y][x+1] && pt[z+1][y+1][x] && pt[z+1][y+1][x+1]) {
-            glm::vec4 pos = glm::vec4((z + 0.5 - 192) / 100.0, (y + 0.5) / 100.0, (x + 0.5 - 193) / 100.0, 1.0);
-            pv[z][y][x].pos = pos;
+            glm::vec3 pos = glm::vec3((z + 0.5 - zOff) / 100.0, (y + 0.5) / 100.0, (x + 0.5 - xOff) / 100.0);
+            // pv[z][y][x].pos = pos;
+            // pv[z][y][x].solid = true;
+            centroids[z * YLEN + y * XLEN + x].pos = pos;
           }
         }
       }
     }
-
-
-    
   }
 
 
@@ -1292,15 +1299,18 @@ class HelloTriangleApplication {
   
 
   void createVertexBuffer() {
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
+    //    VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+    //VkDeviceSize bufferSize = sizeof(pv[0][0][0]) * VOXEL_SIZE;
+    VkDeviceSize bufferSize = sizeof(centroids[0]) * centroids.size();
+    
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices.data(), (size_t) bufferSize);
+    //    memcpy(data, pointVertices.data(), (size_t) bufferSize);
+    memcpy(data, centroids.data(), (size_t) bufferSize);
     vkUnmapMemory(device, stagingBufferMemory);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
