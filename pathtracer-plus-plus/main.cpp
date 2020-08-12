@@ -1262,7 +1262,7 @@ class HelloTriangleApplication {
 
   
   void createVoxels() {
-    centroids.resize(VOXEL_SIZE);
+    //    centroids.resize(VOXEL_SIZE);
 
     size_t zOff, xOff;
     zOff = ZLEN / 2;
@@ -1282,9 +1282,10 @@ class HelloTriangleApplication {
           if (pt[z][y][x] && pt[z][y][x+1] && pt[z][y+1][x] && pt[z][y+1][x+1] &&
               pt[z+1][y][x] && pt[z+1][y][x+1] && pt[z+1][y+1][x] && pt[z+1][y+1][x+1]) {
             glm::vec3 pos = glm::vec3((z + 0.5 - zOff) / 100.0, (y + 0.5) / 100.0, (x + 0.5 - xOff) / 100.0);
-            // pv[z][y][x].pos = pos;
-            // pv[z][y][x].solid = true;
-            centroids[z * YLEN + y * XLEN + x].pos = pos;
+            //            centroids[z * YLEN + y * XLEN + x].pos = pos;
+            Vertex cent{};
+            cent.pos = pos;
+            centroids.push_back(cent);
           }
         }
       }
