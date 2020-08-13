@@ -45,6 +45,10 @@ const std::string TEXTURE_PATH = "textures/vokselia_spawn.png";
 //const std::string TEXTURE_PATH = "textures/sponza.png";
 
 
+//const std::string MODEL_PATH = "models/box.obj";
+//const std::string TEXTURE_PATH = "textures/viking_room.png";
+
+
 
 
 const std::string MODEL_DIR = "models/";
@@ -797,8 +801,8 @@ class HelloTriangleApplication {
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    //rasterizer.polygonMode = VK_POLYGON_MODE_LINE;    
+    //    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer.polygonMode = VK_POLYGON_MODE_LINE;    
     rasterizer.lineWidth = 1.0f;
     rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
     rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;

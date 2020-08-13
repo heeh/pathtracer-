@@ -65,11 +65,27 @@ float march(vec3 ro, vec3 rd) {
 //texture(texSampler, fragTexCoord);
 
 
+float getLight(vec3 p) {
+    vec3 lightPos = vec3(0, 1.0, 0.0);
+  
+    vec3 l = normalize(lightPos-p);
+    vec3 n = getNormal(p);
+    
+    float dif = clamp(dot(n, l), 0., 1.);
+    float d = RayMarch(p+n*SURF_DIST*2., l);
+    if(d<length(lightPos-p)) dif *= .1;
+    
+    return dif;
+}
+
+
 void main() {
   //outColor = vec4(0.0,0.0,1.0, 1.0);
   //outColor = vec4(fragColor, 1.0);
   vec3 ro = vec3(0.5f, 0.0f, -2.0f);  // eye pos
   vec3 rd = normalize(vec3(fragCoord.x, fragCoord.y, 1.0));  // eye dir
   float d = march(ro, rd);
-  outColor = texture(texSampler, fragTexCoord);
+  float diffuse = getLight();
+  
+  outColor = texture(texSampler, fragTexCoord) + vec4(diffuse);
 }
